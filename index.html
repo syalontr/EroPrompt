@@ -128,7 +128,14 @@
 
   .main-layout { display: flex; gap: 24px; align-items: flex-start; }
   #result { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-  .output-panel { width: 400px; flex-shrink: 0; position: sticky; top: 16px; }
+  .output-panel {
+    width: 400px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
   @media (max-width: 960px) {
     .main-layout { flex-direction: column; }
     .output-panel { width: 100%; position: static; }
@@ -172,6 +179,21 @@
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .cat-ban-btn:hover { border-color: #ef4444; color: #fca5a5; }
+
+  .cat-limit-input {
+    flex-shrink: 0;
+    width: 52px;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #fde68a;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 6px;
+    text-align: center;
+    font-family: Consolas, monospace;
+  }
+  .cat-limit-input:focus { outline: none; border-color: #fbbf24; }
+  .cat-limit-input::placeholder { color: #6d6d85; }
   .category-card.banned { opacity: 0.45; border-color: rgba(239, 68, 68, 0.45); }
   .category-card.banned .category-name { color: #f87171; }
   .category-card.banned .cat-ban-btn {
@@ -310,6 +332,167 @@
   }
   #output:focus { outline: none; border-color: #34d399; }
 
+  .fav-fab {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: rgba(34, 34, 58, 0.92);
+    backdrop-filter: blur(8px);
+    font-size: 24px;
+    line-height: 1;
+    color: #fbbf24;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+    z-index: 200;
+  }
+  .fav-fab:hover { transform: scale(1.1) rotate(8deg); background: rgba(251, 191, 36, 0.18); }
+  .fav-fab .fav-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .fav-pop {
+    position: fixed;
+    top: 80px;
+    right: 16px;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    background: #22223a;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    padding: 16px 18px;
+    z-index: 90;
+    display: none;
+  }
+  .fav-pop.open { display: block; }
+  .fav-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .fav-panel-title { font-size: 15px; font-weight: bold; color: #fbbf24; }
+  .fav-panel-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: #b8b8cc;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .fav-panel-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+  #saveFavBtn {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #fff;
+    background: rgba(251, 191, 36, 0.18);
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.15s;
+  }
+  #saveFavBtn:hover { background: rgba(251, 158, 11, 0.35); }
+  .fav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 46vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(251, 191, 36, 0.45) transparent;
+    padding-right: 4px;
+  }
+  .fav-list::-webkit-scrollbar { width: 8px; }
+  .fav-list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); border-radius: 4px; }
+  .fav-list::-webkit-scrollbar-thumb { background: rgba(251, 191, 36, 0.45); border-radius: 4px; }
+  .fav-list::-webkit-scrollbar-thumb:hover { background: rgba(251, 191, 36, 0.7); }
+  .fav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(251, 191, 36, 0.07);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: background 0.15s;
+  }
+  .fav-item:hover { background: rgba(251, 191, 36, 0.1); }
+  .fav-item-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #fde68a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .fav-item-count { font-size: 11px; color: #9d9db8; flex-shrink: 0; }
+  .fav-item button {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .fav-item button:hover { background: rgba(255, 255, 255, 0.2); }
+  .fav-item .fav-del { color: #fca5a5; }
+  .fav-item .fav-load { background: rgba(59, 130, 246, 0.2); border-color: rgba(96, 165, 250, 0.45); }
+  .fav-item .fav-load:hover { background: rgba(96, 165, 250, 0.35); }
+  .fav-item .fav-edit { background: rgba(124, 58, 237, 0.18); border-color: rgba(167, 139, 250, 0.4); }
+  .fav-item .fav-edit:hover { background: rgba(139, 92, 246, 0.35); }
+  .fav-edit-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.45);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .fav-edit-input {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 10px;
+    font-size: 13px;
+    color: #fde68a;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    border-radius: 6px;
+  }
+  .fav-edit-input:focus { outline: none; border-color: #fbbf24; }
+  .fav-empty { font-size: 12px; color: #8b8ba3; text-align: center; padding: 12px 0; }
+
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -399,6 +582,7 @@
     <div class="input-group">
       <button id="resetBtn" class="btn btn-reset">重置</button>
       <label class="reset-check"><input id="resetClearBan" type="checkbox">清除屏蔽</label>
+      <label class="reset-check"><input id="resetClearLimit" type="checkbox">清除分类词条数限制</label>
     </div>
   </div>
 
@@ -423,6 +607,17 @@
 
 <div id="modalOverlay" class="modal-overlay hidden">
   <div class="modal" id="modalBox"></div>
+</div>
+
+<button id="favFab" class="fav-fab" title="收藏">⭐<span id="favBadge" class="fav-badge" style="display:none;">0</span></button>
+
+<div id="favPop" class="fav-pop">
+  <div class="fav-panel-header">
+    <span class="fav-panel-title">⭐ 收藏记录</span>
+    <button id="favCloseBtn" class="fav-panel-close">✕</button>
+  </div>
+  <button id="saveFavBtn">⭐ 收藏当前选中</button>
+  <div id="favList" class="fav-list"></div>
 </div>
 
 <script src="data.js"></script>
