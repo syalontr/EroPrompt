@@ -492,75 +492,6 @@
   }
   .fav-edit-input:focus { outline: none; border-color: #fbbf24; }
   .fav-empty { font-size: 12px; color: #8b8ba3; text-align: center; padding: 12px 0; }
-
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  .modal-overlay.hidden { display: none; }
-  .modal {
-    background: #22223a;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 16px;
-    padding: 24px 28px;
-    width: 480px;
-    max-width: 92vw;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  }
-  .modal h3 { font-size: 17px; color: #e8e8f0; margin-bottom: 8px; }
-  .modal .modal-desc { font-size: 13px; color: #9d9db8; line-height: 1.7; margin-bottom: 18px; }
-  .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .modal-btn {
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: background 0.12s, border-color 0.12s, opacity 0.12s;
-  }
-  .modal-btn.primary { background: linear-gradient(135deg, #7c3aed, #2563eb); }
-  .modal-btn.warn { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.55); }
-  .modal-btn.warn:hover { background: rgba(245, 158, 11, 0.3); }
-  .modal-btn.ghost { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.16); color: #b8b8cc; }
-  .modal-btn.ghost:hover { background: rgba(255, 255, 255, 0.12); }
-  .modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .cat-check-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 320px;
-    overflow-y: auto;
-    margin-bottom: 14px;
-    padding-right: 4px;
-  }
-  .cat-check-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid transparent;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.12s, border-color 0.12s;
-  }
-  .cat-check-item:hover { background: rgba(255, 255, 255, 0.09); }
-  .cat-check-item.checked { border-color: rgba(124, 58, 237, 0.6); background: rgba(124, 58, 237, 0.12); }
-  .cat-check-item input { accent-color: #7c3aed; width: 16px; height: 16px; cursor: pointer; }
-  .cat-check-item .meta { margin-left: auto; font-size: 12px; color: #8b8ba3; white-space: nowrap; }
-  .manual-hint { font-size: 12px; color: #f59e0b; margin-bottom: 12px; min-height: 16px; }
 </style>
 </head>
 <body>
@@ -603,10 +534,6 @@
       <textarea id="output" readonly placeholder="点击上方按钮生成提示词..."></textarea>
     </div>
   </div>
-</div>
-
-<div id="modalOverlay" class="modal-overlay hidden">
-  <div class="modal" id="modalBox"></div>
 </div>
 
 <button id="favFab" class="fav-fab" title="收藏">⭐<span id="favBadge" class="fav-badge" style="display:none;">0</span></button>
