@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提示词随机生成器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #e8e8f0;
+    padding: 32px 16px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle { text-align: center; color: #8b8ba3; font-size: 13px; margin-bottom: 28px; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 8px 14px;
+  }
+  .input-group label { font-size: 13px; color: #b8b8cc; white-space: nowrap; }
+  .input-group input {
+    width: 64px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: #e8e8f0;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    border-radius: 6px;
+    text-align: center;
+    font-family: Consolas, monospace;
+  }
+  .input-group input:focus { outline: none; border-color: #60a5fa; }
+
+  .btn {
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+  }
+  #generateBtn {
+    padding: 12px 40px;
+    font-size: 16px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    border-radius: 999px;
+    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.45);
+  }
+  #generateBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.6); }
+  #lockAllBtn {
+    background: rgba(245, 158, 11, 0.16);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+  }
+  #lockAllBtn:hover { background: rgba(245, 158, 11, 0.32); }
+
+  .btn-reset {
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    padding: 8px 16px;
+  }
+  .btn-reset:hover { background: rgba(239, 68, 68, 0.32); }
+  .reset-check {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #b8b8cc;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .reset-check input { accent-color: #ef4444; cursor: pointer; }
+
+  .prefix-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 4px;
+    flex-wrap: wrap;
+  }
+  .prefix-label {
+    font-size: 13px;
+    color: #b8b8cc;
+    white-space: nowrap;
+  }
+  .prefix-input {
+    flex: 1;
+    min-width: 300px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #e4e4f0;
+    font-size: 13px;
+    font-family: ui-monospace, "Consolas", monospace;
+  }
+  .prefix-input:focus { outline: none; border-color: #60a5fa; }
+
+  #summary { text-align: center; color: #9d9db8; font-size: 13px; margin-bottom: 20px; min-height: 18px; }
+
+  .main-layout { display: flex; gap: 24px; align-items: flex-start; }
+  #result { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .output-panel { width: 400px; flex-shrink: 0; position: sticky; top: 16px; }
+  @media (max-width: 960px) {
+    .main-layout { flex-direction: column; }
+    .output-panel { width: 100%; position: static; }
+  }
+
+  .category-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 16px 20px;
+    backdrop-filter: blur(6px);
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+  .category-card.inactive { opacity: 0.8; }
+  .category-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #a78bfa;
+    margin-bottom: 12px;
+  }
+  .category-card.inactive .category-name { color: #8d8da8; }
+
+  .cat-ban-btn {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #2a2a3d;
+    color: #8b8ba3;
+    font-size: 12px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .cat-ban-btn:hover { border-color: #ef4444; color: #fca5a5; }
+  .category-card.banned { opacity: 0.45; border-color: rgba(239, 68, 68, 0.45); }
+  .category-card.banned .category-name { color: #f87171; }
+  .category-card.banned .cat-ban-btn {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+  }
+  .category-card.banned .word-list { pointer-events: none; opacity: 0.6; }
+
+  .word-list { display: flex; flex-wrap: wrap; gap: 10px; }
+  .word-chip {
+    position: relative;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.12s, border-color 0.12s, background 0.12s;
+  }
+  .word-chip:hover { border-color: rgba(96, 165, 250, 0.6); }
+  .word-en { font-size: 14px; color: #93c5fd; font-family: Consolas, monospace; }
+  .word-zh { font-size: 12px; color: #b8b8cc; }
+
+  .word-chip.unselected {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 4px 10px;
+    opacity: 0.75;
+  }
+  .word-chip.unselected .word-en { font-size: 13px; color: #a0a0b8; }
+  .word-chip.unselected .word-zh { font-size: 11px; color: #808098; }
+  .word-chip.unselected:hover { opacity: 1; border-color: rgba(96, 165, 250, 0.45); }
+
+  .word-chip.locked {
+    border-color: rgba(245, 158, 11, 0.65);
+    background: rgba(245, 158, 11, 0.1);
+    opacity: 1;
+  }
+  .word-chip.locked .word-en { color: #fcd34d; }
+
+  .lock-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #2a2a3d;
+    color: #8b8ba3;
+    font-size: 11px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .lock-btn:hover { border-color: #f59e0b; color: #fcd34d; }
+  .word-chip.locked .lock-btn {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #1a1a2e;
+  }
+
+  .ban-btn {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #2a2a3d;
+    color: #8b8ba3;
+    font-size: 11px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .ban-btn:hover { border-color: #ef4444; color: #fca5a5; }
+  .word-chip.banned .ban-btn {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+  }
+  .word-chip.banned {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .word-chip.banned .word-en { color: #f87171; text-decoration: line-through; }
+  .word-chip.banned .word-zh { color: #7f5a5a; }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .output-title { font-size: 15px; font-weight: bold; color: #34d399; }
+  #copyBtn {
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #fff;
+    background: rgba(52, 211, 153, 0.18);
+    border: 1px solid rgba(52, 211, 153, 0.45);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #copyBtn:hover { background: rgba(52, 211, 153, 0.35); }
+  #output {
+    width: 100%;
+    min-height: 480px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    border-radius: 12px;
+    color: #a7f3d0;
+    font-family: Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    padding: 16px;
+    resize: vertical;
+  }
+  #output:focus { outline: none; border-color: #34d399; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: #22223a;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 24px 28px;
+    width: 480px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  }
+  .modal h3 { font-size: 17px; color: #e8e8f0; margin-bottom: 8px; }
+  .modal .modal-desc { font-size: 13px; color: #9d9db8; line-height: 1.7; margin-bottom: 18px; }
+  .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .modal-btn {
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  }
+  .modal-btn.primary { background: linear-gradient(135deg, #7c3aed, #2563eb); }
+  .modal-btn.warn { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.55); }
+  .modal-btn.warn:hover { background: rgba(245, 158, 11, 0.3); }
+  .modal-btn.ghost { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.16); color: #b8b8cc; }
+  .modal-btn.ghost:hover { background: rgba(255, 255, 255, 0.12); }
+  .modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .cat-check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    padding-right: 4px;
+  }
+  .cat-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .cat-check-item:hover { background: rgba(255, 255, 255, 0.09); }
+  .cat-check-item.checked { border-color: rgba(124, 58, 237, 0.6); background: rgba(124, 58, 237, 0.12); }
+  .cat-check-item input { accent-color: #7c3aed; width: 16px; height: 16px; cursor: pointer; }
+  .cat-check-item .meta { margin-left: auto; font-size: 12px; color: #8b8ba3; white-space: nowrap; }
+  .manual-hint { font-size: 12px; color: #f59e0b; margin-bottom: 12px; min-height: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>提示词随机生成器</h1>
+  <p class="subtitle">点击词条切换选中，右上角小锁锁定，左上角屏蔽后不再参与随机，分类左侧按钮可屏蔽整个分类</p>
+
+  <div class="controls">
+    <div class="input-group">
+      <label>随机类别数</label>
+      <input id="catCount" type="number" min="1" value="12">
+    </div>
+    <div class="input-group">
+      <label>每类词条数</label>
+      <input id="wordCount" type="number" min="1" value="4">
+    </div>
+    <button id="generateBtn" class="btn">生成提示词</button>
+    <button id="lockAllBtn" class="btn">🔒 锁定所有已选</button>
+    <div class="input-group">
+      <button id="resetBtn" class="btn btn-reset">重置</button>
+      <label class="reset-check"><input id="resetClearBan" type="checkbox">清除屏蔽</label>
+    </div>
+  </div>
+
+  <div class="prefix-row">
+    <label class="prefix-label">前置提示词</label>
+    <input id="prefixInput" type="text" class="prefix-input" value="masterpiece,best quality,amazing quality,absurdres,bonneyillustrious,sexy,NSFW,hentai,porno,">
+  </div>
+
+  <p id="summary"></p>
+
+  <div class="main-layout">
+    <div id="result"></div>
+    <div class="output-panel">
+      <div class="output-header">
+        <span class="output-title">生成结果（每行一个类别）</span>
+        <button id="copyBtn">复制</button>
+      </div>
+      <textarea id="output" readonly placeholder="点击上方按钮生成提示词..."></textarea>
+    </div>
+  </div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.min.js"></script>
+</body>
+</html>
