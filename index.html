@@ -492,6 +492,138 @@
   }
   .fav-edit-input:focus { outline: none; border-color: #fbbf24; }
   .fav-empty { font-size: 12px; color: #8b8ba3; text-align: center; padding: 12px 0; }
+
+  .fav-stats {
+    margin-top: 10px;
+    border-top: 1px solid rgba(251, 191, 36, 0.2);
+    padding-top: 10px;
+  }
+  .fav-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .fav-stats-title { font-size: 13px; font-weight: bold; color: #e8d48a; }
+  .fav-stats-more {
+    padding: 3px 10px;
+    font-size: 12px;
+    color: #e8d48a;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .fav-stats-more:hover { background: rgba(251, 191, 36, 0.28); color: #fff; }
+  .ws-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(251, 191, 36, 0.45) transparent;
+    padding-right: 4px;
+  }
+  .fav-stats .ws-list { max-height: 30vh; }
+  .ws-list::-webkit-scrollbar { width: 8px; }
+  .ws-list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); border-radius: 4px; }
+  .ws-list::-webkit-scrollbar-thumb { background: rgba(251, 191, 36, 0.45); border-radius: 4px; }
+  .ws-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+  }
+  .ws-row:hover { background: rgba(255, 255, 255, 0.07); }
+  .ws-rank {
+    width: 26px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #9d9db8;
+  }
+  .ws-rank.top1 { color: #fbbf24; }
+  .ws-rank.top2 { color: #e2e8f0; }
+  .ws-rank.top3 { color: #e08c4a; }
+  .ws-words {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ws-en { font-size: 12px; color: #ffe9a8; }
+  .ws-zh { font-size: 11px; color: #8b8ba3; margin-left: 6px; }
+  .ws-bar-wrap {
+    flex-shrink: 0;
+    width: 56px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0 8px;
+  }
+  .ws-bar { display: block; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 3px; }
+  .ws-count { flex-shrink: 0; min-width: 30px; text-align: right; font-size: 12px; font-weight: bold; color: #fbbf24; }
+  .stats-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 120;
+  }
+  .stats-overlay.open { display: flex; }
+  .stats-modal {
+    background: #22223a;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    border-radius: 14px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+    padding: 18px 22px;
+    width: 460px;
+    max-width: 92vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .stats-modal-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .stats-modal-title { flex: 1; font-size: 15px; font-weight: bold; color: #fbbf24; }
+  .stats-modal-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: #b8b8cc;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .stats-modal-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+  .stats-modal-copy {
+    margin-right: 10px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: #fff;
+    background: rgba(52, 211, 153, 0.16);
+    border: 1px solid rgba(52, 211, 153, 0.45);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .stats-modal-copy:hover { background: rgba(52, 211, 153, 0.35); }
+  .stats-modal .ws-list { max-height: 62vh; }
 </style>
 </head>
 <body>
@@ -545,6 +677,18 @@
   </div>
   <button id="saveFavBtn">⭐ 收藏当前选中</button>
   <div id="favList" class="fav-list"></div>
+  <div id="favStats" class="fav-stats"></div>
+</div>
+
+<div id="statsOverlay" class="stats-overlay">
+  <div class="stats-modal">
+    <div class="stats-modal-header">
+      <span class="stats-modal-title">📊 词条收藏统计（全部）</span>
+      <button id="statsCopyBtn" class="stats-modal-copy">📋 复制所有词条</button>
+      <button id="statsCloseBtn" class="stats-modal-close">✕</button>
+    </div>
+    <div id="statsModalList" class="ws-list"></div>
+  </div>
 </div>
 
 <script src="data.js"></script>
